@@ -1,0 +1,15 @@
+[Unit]
+Description=Artifactory service
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+ExecStart=/opt/artifactory/app/bin/artifactoryManage.sh start
+ExecStop=/opt/artifactory/app/bin/artifactoryManage.sh stop
+ExecReload=/opt/artifactory/app/bin/artifactoryManage.sh restart
+Restart=always
+Environment=JAVA_HOME=/usr/java/latest
+
+[Install]
+WantedBy=multi-user.target
