@@ -13,3 +13,11 @@ Environment=JAVA_HOME=/usr/java/latest
 
 [Install]
 WantedBy=multi-user.target
+sudo tee /etc/yum.repos.d/bintray-jfrog-artifactory.repo <<EOF
+[bintray-jfrog-artifactory]
+name=bintray-jfrog-artifactory
+baseurl=https://jfrog.bintray.com/artifactory-rpms
+gpgcheck=0
+repo_gpgcheck=0
+enabled=1
+EOF
