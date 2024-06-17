@@ -1,2 +1,14 @@
 go test -coverprofile=reports/sonarqube/coverage.out ./...
 go test -json > reports/sonarqube/test-report.out
+
+
+sonar-scanner \
+  -Dsonar.projectKey=go_project_key \
+  -Dsonar.projectName=GoProject \
+  -Dsonar.projectVersion=1.0 \
+  -Dsonar.sources=. \
+  -Dsonar.exclusions=**/*_test.go \
+  -Dsonar.go.coverage.reportPaths=reports/sonarqube/coverage.out \
+  -Dsonar.go.tests.reportPaths=reports/sonarqube/test-report.out \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.login=your_token
