@@ -1,15 +1,2 @@
-sudo apt-get install -y curl gnupg
-
-curl -fsSL https://releases.jfrog.io/artifactory/api/gpg/key/public -o jfrog.gpg
-
-curl -fsSL https://releases.jfrog.io/artifactory/api/gpg/key/public -o jfrog.gpg
-
-sudo mkdir -p /etc/apt/keyrings
-sudo mv jfrog.gpg /etc/apt/keyrings/
-
-echo "deb [signed-by=/etc/apt/keyrings/jfrog.gpg] https://releases.jfrog.io/artifactory/artifactory-debs focal main" | sudo tee /etc/apt/sources.list.d/jfrog.list
-
-
-sudo apt-get update
-
-sudo apt-get install -y jfrog-artifactory-oss
+go test -coverprofile=reports/sonarqube/coverage.out ./...
+go test -json > reports/sonarqube/test-report.out
