@@ -1,14 +1,72 @@
-go test -coverprofile=reports/sonarqube/coverage.out ./...
-go test -json > reports/sonarqube/test-report.out
+import requests
 
+# Replace with your SonarQube instance details
+SONARQUBE_URL = "https://your-sonarqube-instance.com"
+API_TOKEN = "your-api-token"  # Generate a token from your SonarQube account
+PORTFOLIO_NAME = "test"
 
-sonar-scanner \
-  -Dsonar.projectKey=go_project_key \
-  -Dsonar.projectName=GoProject \
-  -Dsonar.projectVersion=1.0 \
-  -Dsonar.sources=. \
-  -Dsonar.exclusions=**/*_test.go \
-  -Dsonar.go.coverage.reportPaths=reports/sonarqube/coverage.out \
-  -Dsonar.go.tests.reportPaths=reports/sonarqube/test-report.out \
-  -Dsonar.host.url=http://localhost:9000 \
-  -Dsonar.login=your_token
+# Authentication
+auth = (API_TOKEN, '')
+
+# Get all portfolios
+def get_portfolios():
+    portfolios = []
+    page = 1
+    page_size = 100  # SonarQube API allows pagination
+    while True:
+        response = requests.get(f"{SONARQUBE_URL}/api/views/search", params={"p": page, "ps": page_size}, auth=auth)
+        if response.status_code == 200:
+            data = response.json()
+            portfolios.extend(data['views'])
+            if data['paging']['total'] <= page * page_size:
+                break
+            page += 1
+        else:
+            print(f"Failed to fetch portfolios: {response.status_code} - {response.text}")
+            break
+    return portfolios
+
+# Find portfolio by name
+def find_portfolio_by_name(portfolios, name):
+    for portfolio in portfolios:
+        if portfolio['name'] == name:
+            return portfolio
+    return None
+
+# Get projects in a specific portfolio
+def get_projects_in_portfolio(portfolio_id):
+    projects = []
+    page = 1
+    page_size = 100  # SonarQube API allows pagination
+    while True:
+        response = requests.get(f"{SONARQUBE_URL}/api/views/children", params={"viewId": portfolio_id, "p": page, "ps": page_size}, auth=auth)
+        if response.status_code == 200:
+            data = response.json()
+            projects.extend(data['components'])
+            if data['paging']['total'] <= page * page_size:
+                break
+            page += 1
+        else:
+            print(f"Failed to fetch projects in portfolio: {response.status_code} - {response.text}")
+            break
+    return projects
+
+# Delete a project by key
+def delete_project(project_key):
+    response = requests.post(f"{SONARQUBE_URL}/api/projects/delete", params={"project": project_key}, auth=auth)
+    if response.status_code == 204:
+        print(f"Project {project_key} deleted successfully.")
+    else:
+        print(f"Failed to delete project {project_key}: {response.status_code} - {response.text}")
+
+# Main script
+portfolios = get_portfolios()
+portfolio = find_portfolio_by_name(portfolios, PORTFOLIO_NAME)
+if portfolio:
+    print(f"Found portfolio: {portfolio['name']} (ID: {portfolio['id']})")
+    projects = get_projects_in_portfolio(portfolio['id'])
+    for project in projects:
+        print(f"Deleting project: {project['key']} ({project['name']})")
+        delete_project(project['key'])
+else:
+    print(f"Portfolio '{PORTFOLIO_NAME}' not found.")
